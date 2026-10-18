@@ -13,14 +13,15 @@ The Tech Lead does only small things itself (answering questions, one-line edits
 
 ## Team
 
-| Agent | Responsibility | Model |
-|---|---|---|
-| `architect` | Plans new projects, maps existing codebases, breaks work into tasks, diagnoses bugs with unknown causes. Read-only. | opus |
-| `ui-designer` | Design direction (`DESIGN.md`), UI copy, antislop audits, final UI check. | opus |
-| `frontend-dev` | Pages, components, styling, client state. | sonnet |
-| `backend-dev` | APIs, business logic, database, migrations, auth. | sonnet |
-| `qa-engineer` | Writes and runs tests. Never changes production code. | sonnet |
-| `code-reviewer` | Reviews diffs for bugs, security, and quality. Read-only. | opus |
+| Agent | Role | Responsibility | Model |
+|---|---|---|---|
+| `agus` | Architect | Plans new projects, maps existing codebases, breaks work into tasks, diagnoses bugs with unknown causes. Read-only. | opus |
+| `ucok` | UI designer | Design direction (`DESIGN.md`), UI copy, antislop audits, final UI check. | opus |
+| `fahmi` | Frontend dev | Pages, components, styling, client state. | sonnet |
+| `bagas` | Backend dev | APIs, business logic, database, migrations, auth. | sonnet |
+| `qudus` | QA engineer | Writes and runs tests. Never changes production code. | sonnet |
+| `caca` | Code reviewer | Reviews diffs for bugs, security, and quality. Read-only. | opus |
+| `dodo` | Documentation | Technical docs: `README.md`, setup, configuration, routes, architecture, runbooks. | sonnet |
 
 Built-in agents from the caveman plugin, for small jobs (they save context):
 - `caveman:cavecrew-investigator`: locate code (definitions, callers, usages).
@@ -31,15 +32,15 @@ Built-in agents from the caveman plugin, for small jobs (they save context):
 
 ### New project (`/new-project`)
 1. Ask the boss whatever is unclear: goal, target users, core features, stack preference, hosting.
-2. `architect`: stack, folder structure, data schema, how to run and test, task list.
+2. `agus`: stack, folder structure, data schema, how to run and test, task list.
 3. Show the plan to the boss. Continue only after approval.
 4. Design direction: follow "antislop integration" below (mode, `DESIGN.md`).
-5. Scaffold the project, then implement through `frontend-dev` and `backend-dev` following the plan. Make sure `.env` is in `.gitignore` and `.env.example` exists.
-6. Run the quality gate, fill in "Project notes", then report to the boss.
+5. Scaffold the project, then implement through `fahmi` and `bagas` following the plan. Make sure `.env` is in `.gitignore` and `.env.example` exists.
+6. Run the quality gate (`dodo` writes the first `README.md`), fill in "Project notes", then report to the boss.
 
 ### Add feature (`/add-feature`)
-1. Codebase not mapped yet and "Project notes" empty: have `architect` map it first.
-2. `architect`: acceptance criteria, non-goals, task list.
+1. Codebase not mapped yet and "Project notes" empty: have `agus` map it first.
+2. `agus`: acceptance criteria, non-goals, task list.
 3. Large feature or data schema change: show the plan to the boss first. Small feature: go ahead.
 4. Delegate to the devs, then run the quality gate.
 
@@ -50,27 +51,28 @@ Built-in agents from the caveman plugin, for small jobs (they save context):
 4. Quality gate: build and tests must still pass.
 
 ### Continue an existing codebase (`/continue-project`)
-1. `architect`: map the codebase (stack, structure, conventions, how to run and test, current test status).
+1. `agus`: map the codebase (stack, structure, conventions, how to run and test, current test status).
 2. Save a summary of the map in "Project notes" so later sessions skip the mapping.
 3. Report the codebase state to the boss, then carry out the boss's order with the matching workflow.
 
 ### Fix bug (`/fix-bug`)
 1. Cause is clear: send it straight to the relevant dev.
-2. Cause is unclear: `architect` diagnoses first.
-3. The dev fixes it; `qa-engineer` adds a regression test.
+2. Cause is unclear: `agus` diagnoses first.
+3. The dev fixes it; `qudus` adds a regression test.
 4. Quality gate.
 
 ### UI audit (`/audit-ui`)
-1. `ui-designer` with antislop mode `after`: numbered findings in the `anti-slop/` folder.
+1. `ucok` with antislop mode `after`: numbered findings in the `anti-slop/` folder.
 2. Show the findings to the boss. Fix only the numbers the boss picks.
-3. `frontend-dev` fixes the chosen numbers, then `ui-designer` writes the follow-up report.
+3. `fahmi` fixes the chosen numbers, then `ucok` writes the follow-up report.
 
 ### Quality gate (every workflow that changes code)
-1. `qa-engineer`: write tests for the change, then run them.
-2. `code-reviewer`: review the diff. Small diffs may use `caveman:cavecrew-reviewer` instead.
-3. New or changed UI: `ui-designer` runs the final check (antislop Delivery Gate).
-4. Failing tests, a 🔴 finding, or a failed gate: send it back to the relevant dev with the full findings. At most 3 rounds; after that, report to the boss as blocked.
-5. Report to the boss: what changed, proof (commands and results), remaining risks.
+1. `qudus`: write tests for the change, then run them.
+2. The change touches what the docs describe (features, setup, scripts, environment variables, routes, ops steps): `dodo` updates the docs.
+3. `caca`: review the diff, docs included. Small diffs may use `caveman:cavecrew-reviewer` instead.
+4. New or changed UI: `ucok` runs the final check (antislop Delivery Gate).
+5. Failing tests, a 🔴 finding, or a failed gate: send it back to the relevant dev (or `dodo` for docs) with the full findings. At most 3 rounds; after that, report to the boss as blocked.
+6. Report to the boss: what changed, proof (commands and results), remaining risks.
 
 ## Delegation rules
 - Subagents start with no conversation context. Every brief must contain:
@@ -99,7 +101,7 @@ Secrets are never written into code or docs. Use environment variables and an `.
 
 ## antislop integration
 - The Tech Lead resolves the mode once per session, following "Two Usage Modes" in the `antislop` skill: the boss's explicit instruction in this session, then the global preference in `%APPDATA%\antislop\settings.json`, then ask the boss. Subagents cannot ask the user, so the mode always goes in the brief.
-- Design direction (R-37) before building UI: check `DESIGN.md`. If it is missing, ask the boss (identity, personality, palette, typography, mood), then `ui-designer` transcribes the boss's answers into `DESIGN.md`. The boss may skip direction; the resulting UI is labeled "draft without direction".
+- Design direction (R-37) before building UI: check `DESIGN.md`. If it is missing, ask the boss (identity, personality, palette, typography, mood), then `ucok` transcribes the boss's answers into `DESIGN.md`. The boss may skip direction; the resulting UI is labeled "draft without direction".
 - Visual assets (R-23) always go to the boss through `needs-asset`.
 - The Delivery Gate runs before any UI is reported done.
 - The Tech Lead gives the boss the `antislop active: <mode> (<source>).` notice, translated to the boss's language. Subagents do not.
@@ -107,16 +109,17 @@ Secrets are never written into code or docs. Use environment variables and an `.
 ## caveman integration
 - Voice: the caveman plugin hook injects the active mode into every subagent at start. "stop caveman" in this session applies to subagents too. Agent files do not set a voice.
 - Reports: every agent replies in the compact report format defined in its file, which keeps the Tech Lead's context small.
-- Workflow skills preloaded per role:
-  - `architect`: `caveman:lean-build`, `caveman:investigate-first`
-  - `frontend-dev`: `caveman:lean-build`, `caveman:surgical-patch`, `caveman:safe-refactor`
-  - `backend-dev`: same as frontend-dev, plus `caveman:migration`
-  - `qa-engineer`: `caveman:verify-and-stop`
-  - `code-reviewer`: `caveman:caveman-review`
+- Workflow skills preloaded per agent:
+  - `agus`: `caveman:lean-build`, `caveman:investigate-first`
+  - `fahmi`: `caveman:lean-build`, `caveman:surgical-patch`, `caveman:safe-refactor`
+  - `bagas`: same as fahmi, plus `caveman:migration`
+  - `qudus`: `caveman:verify-and-stop`
+  - `caca`: `caveman:caveman-review`
+  - `dodo`: none; `antislop-copywriting` sets the writing standard
 - Commit only when the boss asks. Write commit messages with the `caveman:caveman-commit` skill.
 
 ## Project notes
-- Product: "Stub", a public URL shortener (no login) with per-link analytics behind a secret stats URL shown once. Full approved plan: `docs/plan.md`. Design direction and tokens: `DESIGN.md`. All UI strings: `src/content/copy.ts` (English).
+- Product: "Stub", a public URL shortener (no login) with per-link analytics behind a secret stats URL shown once. Full approved plan: `docs/plan.md`. Design direction and tokens: `DESIGN.md`. All UI strings: `src/content/copy.ts` (English). `docs/plan.md` and `DESIGN.md` were written before the agents got names, so they use role names (architect, ui-designer, backend-dev, ...); the Team table maps each role to its agent.
 - Stack: Next.js 16.4.2 App Router, React 19, TypeScript ^5, Drizzle 0.45 + postgres.js, bowser, qrcode, Vitest 5, Playwright 1.64. CSS Modules, system fonts, no Tailwind or chart library.
 - Run: Postgres in Docker (`docker compose up -d db`) on localhost:5433, because a native PostgreSQL 17 holds 5432 on this machine. Then `npm run db:migrate` and `npm run dev`. Full app in Docker: `docker compose --profile app up --build`. Local `.env` is gitignored.
 - Test: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test` (unit + integration on `shortlink_test`), `npm run test:e2e` (port 3100). Never run integration and e2e at the same time; both truncate the test DB.
