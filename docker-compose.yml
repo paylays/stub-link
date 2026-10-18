@@ -1,0 +1,35 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-shortlink}
+      # Defaults are for local dev only; the port is bound to loopback.
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shortlink}
+      POSTGRES_DB: shortlink
+    ports:
+      - "127.0.0.1:${DB_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-shortlink} -d shortlink"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app:
+    profiles: ["app"]
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file: .env
+    environment:
+      # Overrides the host-side URL from .env: inside the network the db listens on 5432.
+      DATABASE_URL: postgres://${POSTGRES_USER:-shortlink}:${POSTGRES_PASSWORD:-shortlink}@db:5432/shortlink
+
+volumes:
+  pgdata:

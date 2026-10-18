@@ -1,0 +1,43 @@
+.toggle {
+  display: none;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 2.75rem;
+  padding: 0 var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+}
+
+/* The head script sets data-js, so the switch only shows when it can work. */
+:global(:root[data-js]) .toggle {
+  display: inline-flex;
+}
+
+.toggle:hover,
+.toggle:active {
+  background: var(--color-note-bg);
+}
+
+.track {
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  width: 2rem;
+  height: 1.125rem;
+  padding-left: 0.125rem;
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  background: var(--toggle-track);
+}
+
+.knob {
+  display: block;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 2px;
+  background: var(--toggle-knob);
+  transform: translateX(var(--toggle-knob-x));
+}

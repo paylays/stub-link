@@ -1,0 +1,108 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+}
+
+.label {
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.inputWrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+/* The expiry value reaches the server through JS; without it the field would be silently ignored. */
+:global(:root:not([data-js])) .expiryField {
+  display: none;
+}
+
+.urlInput,
+.expiryInput {
+  width: 100%;
+  min-width: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-control-border);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-3);
+  min-height: 3rem;
+  font-size: var(--text-base);
+}
+
+.urlInput {
+  border-width: 2px;
+  min-height: 3.5rem;
+  font-size: var(--text-lg);
+}
+
+.urlInput::placeholder {
+  color: var(--color-text-muted);
+  opacity: 1;
+}
+
+.expiryInput {
+  max-width: 20rem;
+}
+
+.urlInput[aria-invalid='true'],
+.expiryInput[aria-invalid='true'] {
+  border-color: var(--color-error);
+}
+
+.submit {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-sm);
+  min-height: 3.5rem;
+  padding: 0 var(--space-5);
+  font-weight: 600;
+}
+
+.submit:hover,
+.submit:active {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.submit[aria-disabled='true'] {
+  cursor: progress;
+}
+
+.hint {
+  margin-top: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.error {
+  margin-top: var(--space-1);
+  font-size: var(--text-base);
+  color: var(--color-error);
+}
+
+@media (min-width: 36rem) {
+  .row {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .submit {
+    flex: none;
+  }
+}

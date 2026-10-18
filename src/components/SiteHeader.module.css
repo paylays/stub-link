@@ -1,0 +1,42 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: calc(2.75rem + var(--space-4));
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4) 0;
+}
+
+.home {
+  max-width: var(--width-home);
+}
+
+.stats {
+  max-width: var(--width-stats);
+}
+
+.narrow {
+  max-width: 32rem;
+}
+
+.wordmark {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+a.wordmark:hover {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+}
+
+@media (min-width: 36rem) {
+  .header {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}

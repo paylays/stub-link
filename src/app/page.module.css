@@ -1,0 +1,33 @@
+.main {
+  max-width: var(--width-home);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-7);
+}
+
+.intro {
+  margin-bottom: var(--space-6);
+}
+
+.heading {
+  font-size: var(--text-xl);
+  line-height: 1.2;
+  margin-bottom: var(--space-3);
+}
+
+.lead {
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 36rem) {
+  .main {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+@media (min-width: 48rem) {
+  .main {
+    padding-top: var(--space-9);
+    padding-bottom: var(--space-8);
+  }
+}

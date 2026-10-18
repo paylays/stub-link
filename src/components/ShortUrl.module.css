@@ -1,0 +1,5 @@
+.code {
+  white-space: nowrap;
+  color: var(--color-accent);
+  font-weight: 600;
+}

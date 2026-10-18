@@ -1,0 +1,116 @@
+.figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.title {
+  font-weight: 600;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
+
+.legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.phone,
+.wide {
+  display: block;
+  font: var(--text-xs) / 1.4 var(--font-mono);
+}
+
+.plot {
+  position: relative;
+  margin-top: var(--space-2);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.yLabel {
+  position: absolute;
+  left: 0;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.xLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-1);
+  color: var(--color-text-muted);
+}
+
+.wide {
+  display: none;
+}
+
+.bar {
+  fill: var(--chart-clicks);
+}
+
+.baseline {
+  stroke: var(--color-control-border);
+  stroke-width: 1;
+}
+
+.grid {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}
+
+.halo {
+  fill: none;
+  stroke: var(--color-bg);
+  stroke-width: 6;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.line {
+  fill: none;
+  stroke: var(--chart-uniques);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.dotHalo {
+  fill: var(--color-bg);
+}
+
+.dot {
+  fill: var(--chart-uniques);
+}
+
+.note {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+@media (min-width: 40rem) {
+  .phone {
+    display: none;
+  }
+
+  .wide {
+    display: block;
+  }
+}
