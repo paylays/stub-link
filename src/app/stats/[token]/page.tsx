@@ -16,9 +16,16 @@ const load = cache(getStatsByToken);
 
 export async function generateMetadata({ params }: { params: Promise<{ token: string }> }): Promise<Metadata> {
   const { token } = await params;
-  const stats = await load(token);
+  let stats = null;
+  let failed = false;
+  try {
+    stats = await load(token);
+  } catch {
+    // The page body rethrows the cached error into error.tsx; the title must still be set.
+    failed = true;
+  }
   return {
-    title: stats ? copy.stats.metaTitle : copy.notFound.metaTitle,
+    title: stats || failed ? copy.stats.metaTitle : copy.notFound.metaTitle,
     robots: { index: false, follow: false },
   };
 }

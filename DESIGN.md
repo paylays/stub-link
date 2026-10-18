@@ -147,8 +147,8 @@ Hairlines (`--color-border`, 1.30:1 light, 1.43:1 dark) and gridlines are decora
 | `--text-xs` | 0.75rem (12px) | 1.4 | Chart axis labels only (mono) |
 | `--text-sm` | 0.875rem (14px) | 1.5 | Hints, notes, breakdown rows, the stats link value |
 | `--text-base` | 1rem (16px) | 1.5 | Body, labels, buttons, the expiry input (16px stops iOS from zooming on focus) |
-| `--text-lg` | 1.25rem (20px) | 1.4 | The URL input, the short link in the result, stats section headings |
-| `--text-xl` | `clamp(1.75rem, 1.35rem + 1.6vw, 2.25rem)` (28px to 36px) | 1.2 | The page heading, one per page |
+| `--text-lg` | 1.25rem (20px) | 1.4 | The URL input, the short link in the result, the result panel heading, stats section headings |
+| `--text-xl` | `clamp(1.75rem, 1.35rem + 1.6vw, 2.25rem)` (28px to 36px) | 1.2 | The page heading, one per page. The result panel is the exception: its heading uses `--text-lg`, so the short link stays the focal point. |
 | `--text-display` | `clamp(2.5rem, 1.9rem + 2.4vw, 3.5rem)` (40px to 56px) | 1.1 | The total clicks number only |
 
 - Weights: 400 for body text, 600 for headings, labels, buttons, and the wordmark. Nothing lighter (thin system weights render unevenly on Windows) and nothing heavier.
@@ -209,6 +209,7 @@ Stats:
 
 - Every URL on screen uses `overflow-wrap: anywhere`. The stats link is about 70 characters and a target URL can be 2,048, which would push a phone layout sideways otherwise.
 - URLs are never truncated with an ellipsis, because a cut-off link cannot be checked.
+- Short links break only after the last slash: the code has `white-space: nowrap`, and a `<wbr>` after the slash is the preferred break, with `overflow-wrap: break-word` as the fallback. So the 7 characters always stay on one line. A host wider than its column still breaks inside the host instead of overflowing. In the result panel that starts at roughly 20 characters of scheme plus host on a 320px phone and roughly 24 next to the QR code on desktop, depending on the device's mono font. Check this again once the production domain is chosen.
 - The chart SVG scales with its container (`width: 100%` plus a `viewBox`).
 
 ### Tap targets
@@ -228,7 +229,7 @@ Stats:
 
 - Primary (only "Shorten link"): `--color-accent` fill, `--color-on-accent` label, weight 600.
 - Secondary (Copy, "Shorten another link", "Load stats again"): `--color-surface` fill, 1px `--color-control-border`, `--color-text` label.
-- The QR download is a link (`<a href download>`) styled as a secondary button.
+- The QR download is a link (`<a href download>`) styled as a secondary button. "Shorten another link" is also a link (to `/`) styled as a secondary button, so it works without JavaScript (section 11).
 - Labels are text only. No icons, no arrows.
 
 ## 9. Focus
@@ -253,9 +254,10 @@ The chart answers one question, written as its title: "Clicks and unique visitor
 - **Daily unique visitors:** a 2px line in `--chart-uniques` with a dot (3px radius) on each day, both with the 2px `--color-bg` halo from section 5.
 - **Told apart without color:** bars against a line with dots. The legend repeats the shapes: a small filled bar next to "Clicks", a short line with a dot next to "Daily unique visitors". The legend labels are text.
 - **Baseline:** 1px `--color-control-border`, so a zero day reads as zero, not as missing.
-- **Gridlines:** at most two horizontal lines (a rounded maximum and its half) in `--chart-grid`. Y labels at 0 and the rounded maximum.
+- **Gridlines:** at most two horizontal lines (a rounded maximum and its half) in `--chart-grid`. Y labels at 0 and the rounded maximum, in a left column as wide as the longest label.
 - **X labels:** first day, middle day, last day, in mono `--text-xs` and `--color-text-muted`.
-- **Height:** 12rem below 40rem, 15rem above.
+- **Axis labels are HTML text outside the SVG**, so they stay at `--text-xs` at every width and grow with browser zoom. Only the marks (bars, line, dots, gridlines, baseline) scale with the SVG.
+- **Height:** the plot keeps a fixed aspect ratio and scales with the column: 300 by 192 below 40rem (about 10rem tall on a 320px phone), 900 by 240 from 40rem (about 9rem to 14rem tall).
 - **No hover tooltips:** MOTION 1 and no client JS. Exact numbers live in the data table.
 - **Accessibility:** the SVG is `aria-hidden="true"`. A visually hidden `<table>` with the caption from `copy.stats.chartTableCaption` carries every day's clicks and unique visitors.
 - **Notes under the chart:** `copy.stats.daysInUtcNote` and `copy.stats.uniquesNote`, in `--text-sm` muted.
@@ -275,7 +277,7 @@ All strings come from `src/content/copy.ts`. The keys are named below.
 
 ### Header row (every page)
 
-One row at the top of the page column on every page: home, stats, app 404, and the status pages. The wordmark sits on the left and the theme switch on the right (section 15). The row keeps this layout at every width; at 320px the wordmark and the switch together take about 12rem of the 18rem available. `min-height: 2.75rem`, so the row does not change height when the switch appears. The wordmark links to `/` on every page except home, where it is plain text.
+One row at the top of the page column on every page: home, stats, app 404, and the status pages. The wordmark sits on the left and the theme switch on the right (section 15). The row keeps this layout at every width; at 320px the wordmark and the switch together take about 12rem of the 18rem available. `min-height: 2.75rem`, so the row does not change height when the switch appears. The wordmark links to `/` on every page except home, where it is plain text. The link is at least 2.75rem wide and tall, so it meets the 44px tap target even though "Stub" is a short word.
 
 ### Home: create form
 
@@ -290,7 +292,7 @@ The form uses `noValidate`, so the browser's built-in messages never replace our
 | Invalid (`url_*` codes) | Border turns `--color-error`, `aria-invalid="true"`, message below in `--color-error` linked with `aria-describedby`, focus moves to the field. The message text is always shown, so the error never depends on color alone. |
 | Submitting | Value kept, field is read-only |
 
-**Expiry field:** `type="datetime-local"`, label `home.expiryLabel`, hint `home.expiryHint` below in muted text, `min` set to now plus 1 minute so the picker helps. The client converts the value to ISO-8601 UTC before submit. Invalid (`expiry_*` codes) works like the URL field.
+**Expiry field:** `type="datetime-local"`, label `home.expiryLabel`, hint `home.expiryHint` below in muted text, `min` set to now plus 1 minute so the picker helps. The client converts the value to ISO-8601 UTC before submit. Invalid (`expiry_*` codes) works like the URL field. Without JavaScript the whole field is hidden, because the value only reaches the server through the client conversion; the form still creates a link with no expiry.
 
 **Submit button** (primary):
 
@@ -309,8 +311,8 @@ After a successful create, the result panel replaces the form, so the short link
 
 Order inside the panel (`--color-surface`, `--radius-md`, 1px `--color-border`):
 
-1. `result.heading`.
-2. Short link: label `result.shortLinkLabel`, value in mono `--text-lg` with the code in accent, Copy button.
+1. `result.heading`, in `--text-lg` (section 6), so it does not outweigh the short link.
+2. Short link: label `result.shortLinkLabel`, value in mono `--text-lg` with the code in accent, Copy button. In both copy rows the Copy button sits under its value at every width, so the value gets the full column (the links column is narrow next to the QR code) and the two rows read the same.
 3. Stats link note (`--color-note-bg`, `--radius-md`): `result.warningTitle` in weight 600, `result.warningBody`, label `result.statsLinkLabel`, value in mono `--text-sm`, Copy button. The note is marked by its title text, not by color.
 4. QR: label `result.qrLabel`, 10rem square preview of `/api/qr/{code}` with alt `result.qrAlt(shortUrl)`, download link `result.qrDownload` with `download="{code}-qr.png"`.
 5. Expiry line: `result.expiresOn(date)` or `result.neverExpires`.
@@ -323,6 +325,9 @@ Order inside the panel (`--color-surface`, `--radius-md`, 1px `--color-border`):
 | Idle | Visible text `result.copy`, accessible name `result.copyShortLinkLabel` or `result.copyStatsLinkLabel` |
 | Copied | Visible text `result.copied` for 2 seconds. A polite live region announces `result.shortLinkCopied` or `result.statsLinkCopied`. |
 | Failed (clipboard API missing or denied) | `result.copyFailed` shown under the value. The value text has `user-select: all`, so one tap selects it. |
+| No JavaScript | Hidden, like the theme switch (R-26). The values stay selectable. |
+
+Without JavaScript the result is rendered by the server, so `result.createAnother` must work as a plain link to `/` (the click handler prevents the reload when JavaScript runs).
 
 **QR preview:**
 
@@ -422,7 +427,7 @@ After someone picks a theme, the page stops following the device. Clearing the s
 
 In the header row, to the right of the wordmark (section 11), on:
 
-- the home page, the stats page, and the app 404, through the shared header in `src/app/layout.tsx`;
+- the home page, the stats page, the stats error page, and the app 404, through `SiteHeader`, which each page renders with its own column width (so the header lines up even when the stats route shows the 404);
 - the redirect 404 and 410 status pages, inside the HTML string from `renderStatusPage`.
 
 ### Markup and semantics
@@ -506,6 +511,8 @@ This goes first in `<head>`, before any stylesheet:
 ```
 
 It runs before the first paint, so a stored choice is applied before anything shows. With no stored choice it sets no theme and the media query decides.
+
+React renders the whole document again in the browser on the bad-token 404 and on the stats error page, which drops the attributes this script set. The switch component re-applies `data-js` and the stored theme when it mounts, so those pages keep the person's choice and the switch.
 
 In the Next.js app, render it inside `<head>` in `src/app/layout.tsx` and put `suppressHydrationWarning` on `<html>`, because the script adds attributes to `<html>` before React hydrates.
 

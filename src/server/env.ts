@@ -5,7 +5,8 @@ function required(name: string): string {
   return value;
 }
 
-function parseAppUrl(raw: string): string {
+function parseAppUrl(input: string): string {
+  const raw = input.trim();
   const message = 'APP_URL must be an absolute http(s) URL';
   let parsed: URL;
   try {

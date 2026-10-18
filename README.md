@@ -21,7 +21,7 @@ Stack: Next.js 16 (App Router), TypeScript, PostgreSQL, Drizzle ORM. The plan li
 4. Apply migrations: `npm run db:migrate`
 5. Start the dev server: `npm run dev`
 
-The db container publishes host port 5433, not 5432, so it does not clash with a PostgreSQL already installed on the machine. Set `DB_PORT` to change it. The container uses the user and password `shortlink` / `shortlink` by default (local development only). Override with `POSTGRES_USER` and `POSTGRES_PASSWORD` in `.env` before the first start; the connection URLs must match.
+The db container publishes host port 5433, not 5432, so it does not clash with a PostgreSQL already installed on the machine. Set `DB_PORT` to change it. The container uses the user and password `shortlink` / `shortlink` by default (local development only). Override with `POSTGRES_USER` and `POSTGRES_PASSWORD` in `.env` before the first start; the connection URLs must match. The password must be URL-safe (letters, digits, `-`, `_`, `.`), or percent-encoded inside the URLs, because compose puts it into `DATABASE_URL` as is.
 
 The init script creates the `shortlink_test` database on the first start of an empty volume only. Run `npm run db:migrate` against the test database by setting `DATABASE_URL` to `TEST_DATABASE_URL` for that command.
 

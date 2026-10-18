@@ -21,6 +21,7 @@ services:
   app:
     profiles: ["app"]
     build: .
+    init: true
     depends_on:
       db:
         condition: service_healthy

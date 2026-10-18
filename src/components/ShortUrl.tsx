@@ -6,6 +6,8 @@ export function ShortUrl({ url }: { url: string }) {
   return (
     <>
       {url.slice(0, cut)}
+      {/* Only break opportunity: after the slash, so the code never splits. */}
+      <wbr />
       <span className={styles.code}>{url.slice(cut)}</span>
     </>
   );

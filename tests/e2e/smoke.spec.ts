@@ -34,6 +34,12 @@ test.afterAll(async () => {
   }
 });
 
+function expectPrivateHeaders(h: Record<string, string>) {
+  expect(h['x-robots-tag']).toContain('noindex');
+  expect(h['referrer-policy']).toBe('no-referrer');
+  expect(h['cache-control']).toContain('no-store');
+}
+
 const shortUrlLocator = (page: Page) =>
   page.locator('p').filter({ hasText: /^http:\/\/localhost:3100\/[^/\s]{7}$/ });
 const statsUrlLocator = (page: Page) =>
@@ -73,7 +79,22 @@ test('create link, redirect, then stats show one click', async ({ page, request 
   expect(res.status()).toBe(302);
   expect(res.headers()['location']).toBe(TARGET);
 
-  await page.goto(statsUrl);
+  // The click row is inserted after the 302 is sent, so wait for it.
+  await expect
+    .poll(async () => {
+      const sql = testSql();
+      try {
+        const [{ count }] = await sql`SELECT count(*)::int AS count FROM clicks`;
+        return count as number;
+      } finally {
+        await sql.end();
+      }
+    })
+    .toBe(1);
+
+  const statsRes = await page.goto(statsUrl);
+  expect(statsRes?.status()).toBe(200);
+  expectPrivateHeaders(statsRes!.headers());
   const total = page
     .locator('section')
     .filter({ has: page.locator('#total-label') })
@@ -130,5 +151,26 @@ test.describe('theme switch', () => {
 test('bad stats token returns 404 with not-found copy', async ({ page }) => {
   const response = await page.goto('/stats/not-a-real-token');
   expect(response?.status()).toBe(404);
+  expectPrivateHeaders(response!.headers());
   await expect(page.getByRole('heading', { name: copy.notFound.title })).toBeVisible();
+  await expect(page).toHaveTitle(copy.notFound.metaTitle);
+});
+
+test('bad stats token 404 honors stored dark theme and shows the switch', async ({ page }) => {
+  await page.addInitScript(() => localStorage.setItem('stub-theme', 'dark'));
+  await page.goto('/stats/not-a-real-token');
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  await expect(page.getByRole('switch', { name: copy.theme.toggleLabel })).toBeVisible();
+});
+
+test('"Shorten another link" resets the form without navigating', async ({ page }) => {
+  await createLink(page, TARGET);
+  const before = page.url();
+  await page.getByRole('link', { name: copy.result.createAnother }).click();
+  const url = page.locator('#url');
+  await expect(url).toBeVisible();
+  await expect(url).toHaveValue('');
+  await expect(url).toBeFocused();
+  expect(page.url()).toBe(before);
+  await expect(page.getByRole('heading', { name: copy.result.heading })).toHaveCount(0);
 });

@@ -137,4 +137,53 @@ describe('createLinkAction', () => {
       error: 'url_scheme',
     });
   });
+
+  it('A2: rejected inputs insert no row', async () => {
+    const appUrl = process.env.APP_URL!.replace(/\/+$/, '');
+    const bad = [
+      'javascript:alert(1)',
+      `${appUrl}/abc`,
+      'https://user:pw@example.com/x',
+      `https://example.com/${'a'.repeat(2100)}`,
+    ];
+    for (const u of bad) {
+      const s = await createLinkAction({ status: 'idle' }, fd(u));
+      expect(s.status).toBe('error');
+    }
+    const [{ count }] = await rawSql()`select count(*)::int as count from links`;
+    expect(count).toBe(0);
+  });
+
+  describe('expiry fields', () => {
+    const form = (fields: Record<string, string>) => {
+      const f = fd(TARGET);
+      for (const [k, v] of Object.entries(fields)) f.set(k, v);
+      return f;
+    };
+    const rows = async () => {
+      const [{ count }] = await rawSql()`select count(*)::int as count from links`;
+      return count as number;
+    };
+
+    it('empty expiresAt with non-empty expiresLocal gives expiry_invalid and no row', async () => {
+      const s = await createLinkAction({ status: 'idle' }, form({ expiresAt: '', expiresLocal: '2099-01-01T10:00' }));
+      expect(s).toEqual({ status: 'error', error: 'expiry_invalid' });
+      expect(await rows()).toBe(0);
+    });
+
+    it('both empty creates a link without expiry', async () => {
+      const s = await createLinkAction({ status: 'idle' }, form({ expiresAt: '', expiresLocal: '' }));
+      expect(s.status).toBe('ok');
+      if (s.status === 'ok') expect(s.expiresAt).toBeNull();
+      expect(await rows()).toBe(1);
+    });
+
+    it('valid ISO expiresAt with expiresLocal creates a link with that expiry', async () => {
+      const iso = '2099-01-01T10:00:00.000Z';
+      const s = await createLinkAction({ status: 'idle' }, form({ expiresAt: iso, expiresLocal: '2099-01-01T17:00' }));
+      expect(s.status).toBe('ok');
+      if (s.status === 'ok') expect(s.expiresAt).toBe(iso);
+      expect(await rows()).toBe(1);
+    });
+  });
 });

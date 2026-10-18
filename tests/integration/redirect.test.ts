@@ -73,6 +73,8 @@ describe('redirect route', () => {
     const res = await GET(req(code || 'x', { 'user-agent': CHROME_UA }), ctx(code));
     await Promise.all(pending);
     expect(res.status).toBe(404);
+    expect(res.headers.get('content-type')).toContain('text/html');
+    expect(res.headers.get('cache-control')).toContain('no-store');
     expect(await clickCount()).toBe(0);
   });
 });

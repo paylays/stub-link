@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { copy } from '@/content/copy';
 import type { CreateLinkState } from '@/lib/types';
@@ -54,7 +55,9 @@ function CopyRow({
       </p>
       <div className={styles.valueLine}>
         <p className={valueClass}>{display}</p>
-        <button type="button" onClick={onCopy} aria-label={buttonLabel} className={styles.button}>
+        <button type="button" onClick={onCopy} aria-label={buttonLabel}
+          className={`${styles.button} ${styles.copy}`}
+        >
           {status === 'copied' ? copy.result.copied : copy.result.copy}
         </button>
       </div>
@@ -70,6 +73,7 @@ function CopyRow({
 function expiryLine(expiresAt: string | null): string {
   if (!expiresAt) return copy.result.neverExpires;
   const d = new Date(expiresAt);
+  if (Number.isNaN(d.getTime())) return '';
   const pad = (n: number) => String(n).padStart(2, '0');
   const month = new Intl.DateTimeFormat('en-US', { month: 'short' }).format(d);
   const zone =
@@ -84,6 +88,7 @@ export function LinkResult({ result, onReset }: { result: Result; onReset: () =>
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [qrFailed, setQrFailed] = useState(false);
   const qrSrc = `/api/qr/${result.code}`;
+  const expiry = expiryLine(result.expiresAt);
 
   useEffect(() => {
     headingRef.current?.focus();
@@ -146,11 +151,18 @@ export function LinkResult({ result, onReset }: { result: Result; onReset: () =>
         </div>
       </div>
 
-      <p className={styles.expiry}>{expiryLine(result.expiresAt)}</p>
+      {expiry && <p className={styles.expiry}>{expiry}</p>}
 
-      <button type="button" onClick={onReset} className={styles.button}>
+      <Link
+        href="/"
+        className={styles.button}
+        onClick={(e) => {
+          e.preventDefault();
+          onReset();
+        }}
+      >
         {copy.result.createAnother}
-      </button>
+      </Link>
     </section>
   );
 }
