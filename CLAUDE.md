@@ -122,7 +122,7 @@ Secrets are never written into code or docs. Use environment variables and an `.
 - Test: `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test` (unit + integration on `shortlink_test`), `npm run test:e2e` (port 3100). Never run integration and e2e at the same time; both truncate the test DB.
 - Boss decisions: hosting local only for now (deploy needs approval); theme follows device plus a light/dark switch; URLs without a scheme are rejected with a hint; no Safe Browsing.
 - Known limits: lockfile generated on Windows, so the Dockerfile uses `npm install` instead of `npm ci`; `next start` warns about `output: standalone` (harmless locally).
-- Status 2026-10-19: v1 done, quality gate passed in round 2 of 3 (lint, typecheck, build, 128 unit+integration, 7 e2e; code review 0 🔴; UI Delivery Gate pass). Round 1 is committed as 7f3833d; the round-2 fixes and test updates are uncommitted until the boss asks.
+- Status 2026-10-19: v1 done, quality gate passed in round 2 of 3 (lint, typecheck, build, 128 unit+integration, 7 e2e; code review 0 🔴; UI Delivery Gate pass). Round 1 is committed as 7f3833d, round 2 as 2f09581.
 - Accepted gaps: with JS off AND the DB down, `/stats/<token>` returns a blank 500 (error.tsx is client-only); a long production host breaks inside the host on narrow screens (the code never splits), so re-check once the domain is known; the "script tag" React warning on the bad-token 404 and error page is harmless (ThemeToggle restores the theme).
 
 <!-- antislop:start -->
