@@ -1,79 +1,121 @@
-# Short link app
+<div align="center">
 
-A public URL shortener. Anyone can shorten an http(s) link, optionally with an expiry date. The creator gets a short URL, a QR code (PNG), and a secret stats URL shown once. The stats page shows clicks and unique visitors per day (UTC, last 30 days) plus device, browser and OS breakdowns.
+# Stub
 
-Stack: Next.js 16 (App Router), TypeScript, PostgreSQL, Drizzle ORM. The plan lives in `docs/plan.md`.
+**Shorten a link. Count its clicks. No account.**
 
-## Prerequisites
+[![License: MIT](https://img.shields.io/badge/license-MIT-56662A.svg)](LICENSE)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-29251F)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-6A6157)
 
-- Node 24 and npm 11
-- Docker Desktop (for the local PostgreSQL container)
+[Quick start](#quick-start) · [How it works](#how-it-works) · [Privacy](#privacy) · [Documentation](docs/README.md)
 
-## Local setup
+<br>
 
-1. Install dependencies: `npm install`
-2. Copy `.env.example` to `.env` and replace the `USER:PASSWORD` placeholders and fill in `HASH_SECRET`:
-   - `DATABASE_URL`: for the Docker db below, `postgres://shortlink:shortlink@localhost:5433/shortlink`
-   - `TEST_DATABASE_URL`: same, with database `shortlink_test`
-   - `APP_URL`: `http://localhost:3000`
-   - `HASH_SECRET`: 32 or more random bytes, generate with `node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"`
-3. Start the database: `docker compose up -d db`
-4. Apply migrations: `npm run db:migrate`
-5. Start the dev server: `npm run dev`
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/home-dark.png">
+  <img src="docs/images/home-light.png" alt="The Stub home page: a field for the link to shorten, an optional expiry, and a Shorten link button." width="720">
+</picture>
 
-The db container publishes host port 5433, not 5432, so it does not clash with a PostgreSQL already installed on the machine. Set `DB_PORT` to change it. The container uses the user and password `shortlink` / `shortlink` by default (local development only). Override with `POSTGRES_USER` and `POSTGRES_PASSWORD` in `.env` before the first start; the connection URLs must match. The password must be URL-safe (letters, digits, `-`, `_`, `.`), or percent-encoded inside the URLs, because compose puts it into `DATABASE_URL` as is.
+</div>
 
-The init script creates the `shortlink_test` database on the first start of an empty volume only. Run `npm run db:migrate` against the test database by setting `DATABASE_URL` to `TEST_DATABASE_URL` for that command.
+<br>
 
-## npm scripts
+Stub turns a long web address into a 7-character short link. You also get a QR code and a private stats page that shows how often the link was used. Nobody signs up, and nobody logs in.
 
-| Script | Command |
-|---|---|
-| `npm run dev` | `next dev` |
-| `npm run build` | `next build` |
-| `npm run start` | `next start` |
-| `npm run lint` | `eslint .` |
-| `npm run typecheck` | `tsc --noEmit` |
-| `npm run db:generate` | `drizzle-kit generate` |
-| `npm run db:migrate` | `node --env-file-if-exists=.env scripts/migrate.mjs` |
-| `npm run test` | `vitest run` |
-| `npm run test:unit` | `vitest run --project unit` |
-| `npm run test:int` | `vitest run --project integration` |
-| `npm run test:e2e` | `playwright test` |
+## What you get
 
-## Tests
+- **A short link** for most `http` and `https` addresses. A few kinds are refused, such as hosts without a dot and links to Stub itself; the [validation rules](docs/api.md#validation) list them.
+- **An optional expiry.** Set a date and time, and the link stops working then. Visitors see a clear notice instead of an error.
+- **A QR code** for the short link, as a PNG you can download.
+- **A private stats page.** Clicks and unique visitors per day for the last 30 days, with breakdowns by device, browser, and operating system. Dates are in UTC.
+- **Light and dark themes.** Stub follows your device setting, and a switch in the header overrides it.
 
-- Unit: `npm run test:unit`. No database needed.
-- Integration: `npm run test:int`. Needs the db container running (`docker compose up -d db`) and `TEST_DATABASE_URL` set.
-- End to end: `npx playwright install chromium` once, then `npm run test:e2e`. It builds the app and serves it on port 3100 against `TEST_DATABASE_URL`.
+## How it works
 
-## Run in Docker
+Paste a link and pick an expiry if you want one. Stub answers with the short link, the QR code, and a stats link.
 
-`docker compose --profile app up --build`
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/result-dark.png">
+  <img src="docs/images/result-light.png" alt="The result panel after shortening a link: the short link, its QR code, and a note telling you to save the stats link now." width="640">
+</picture>
+</div>
 
-This builds the image, waits for the db to be healthy, applies migrations, and serves the app on http://localhost:3000. The container reads `.env` but overrides `DATABASE_URL` to reach the db service on the internal network.
+Save the stats link right away. Stub shows it once and cannot recover it, because it keeps only a hash of it. Share the short link, and open the stats link whenever you want to check on it.
 
-## Deploy notes (reference only)
+<div align="center">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/stats-dark.png">
+  <img src="docs/images/stats-light.png" alt="The stats page: total clicks, a 30-day chart of clicks and unique visitors, and breakdowns by device, browser, and operating system." width="720">
+</picture>
+</div>
 
-Not deployed. If the boss approves a deploy, Vercel with Neon works:
+Anyone who has the stats link can read the stats, so share it only with people you trust.
 
-- Set the four env vars in Vercel: `DATABASE_URL` (Neon pooled URL), `TEST_DATABASE_URL` is not needed at runtime, `APP_URL` (the public origin), `HASH_SECRET`.
-- Run the migration before promoting a release, from a machine with the Neon direct connection: `DATABASE_URL_UNPOOLED=<direct url> npm run db:migrate`. The migrator prefers `DATABASE_URL_UNPOOLED` when set.
-- Vercel Hobby is for non-commercial use only.
+<details>
+<summary>The stats page on a phone</summary>
+<br>
+<div align="center">
+<img src="docs/images/stats-mobile-light.png" alt="The same stats page on a 390 pixel wide screen, in one column." width="300">
+</div>
+</details>
 
-## Abuse takedown
+## Privacy
 
-There is no admin UI. Disable a link with SQL; its short URL then returns 410:
+Stub does not store visitors' IP addresses or raw browser strings. A visit is recorded as:
 
-```sql
-UPDATE links SET disabled_at = now() WHERE code = '...';
+- a timestamp,
+- a hash that changes every day and differs for each link,
+- three labels: device type, browser, and operating system.
+
+Stub sets no cookies and does not log referrers. Stats pages are marked `noindex` and are disallowed in `robots.txt`. The details are in [Architecture](docs/architecture.md#privacy-properties).
+
+Creating a link stores one more thing: a keyed hash of the creator's IP address, used to limit each IP address to 20 new links per hour. It stays on file with the link. Stub does not check where a link leads.
+
+## Quick start
+
+You need Node.js 24 and Docker.
+
+```bash
+npm install
+cp .env.example .env
 ```
 
-## Known limits
+Open `.env` and fill in the four values. The [getting started guide](docs/getting-started.md) lists them, including how to generate `HASH_SECRET`. Then:
 
-- A lost stats URL cannot be recovered. Only a hash of the secret is stored.
-- The rate limit (20 new links per IP per hour) is best-effort. Shared IPs (CGNAT) share a budget.
-- Self-hosting needs a reverse proxy that overwrites `x-forwarded-for` and `x-real-ip`. Without one, clients can spoof their IP and dodge the rate limit.
-- Unique visitors are counted per link per UTC day, so the sum over 30 days is not a count of distinct people.
-- Bot and prefetch filtering is a heuristic.
-- Click rows are never pruned.
+```bash
+docker compose up -d db
+npm run db:migrate
+npm run dev
+```
+
+The app runs at http://localhost:3000.
+
+To run the whole app in Docker instead:
+
+```bash
+docker compose --profile app up --build
+```
+
+## Built with
+
+Next.js 16 (App Router), React 19, TypeScript, PostgreSQL with Drizzle ORM, and CSS Modules with system fonts. Tests use Vitest and Playwright.
+
+## Documentation
+
+| Guide | What is in it |
+|---|---|
+| [Getting started](docs/getting-started.md) | Setup, database, migrations, Docker |
+| [Configuration](docs/configuration.md) | Environment variables |
+| [Architecture](docs/architecture.md) | Structure, data model, analytics, privacy |
+| [Routes and API](docs/api.md) | Every route, status codes, error codes |
+| [Testing](docs/testing.md) | Unit, integration, and end-to-end tests |
+| [Operations](docs/operations.md) | Backups, link takedown, troubleshooting, known limitations |
+| [npm scripts](docs/scripts.md) | What each script does |
+
+The full index is in [docs/README.md](docs/README.md).
+
+## License
+
+Stub is released under the [MIT License](LICENSE).
