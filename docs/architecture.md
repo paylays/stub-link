@@ -4,33 +4,56 @@ Stub is a single Next.js 16 application (App Router, React 19, TypeScript) backe
 
 ## Folder structure
 
-```
-src/
-  app/                    Routes and pages
-    page.tsx              Home page with the create-link form
-    actions.ts            Server Action that creates a link
-    [code]/route.ts       Short-link redirect (GET, HEAD)
-    stats/[token]/        Private stats page (page.tsx, error.tsx)
-    api/qr/[code]/route.ts  QR code PNG
-    robots.ts             robots.txt
-    not-found.tsx         Site-wide 404 page
-    layout.tsx, globals.css
-  components/             React components and the static status page renderer
-  content/copy.ts         Every user-facing string (English)
-  lib/                    Pure helpers: URL and expiry validation, codes, tokens,
-                          hashing, user-agent parsing, day math, shared types
-  server/                 Server-only code
-    db/schema.ts          Drizzle schema
-    db/client.ts          Lazy postgres.js pool
-    env.ts                Environment validation
-    links.ts              Create and look up links
-    clicks.ts             Record a click
-    stats.ts              Aggregate stats
-    rate-limit.ts         Creation rate limit
-drizzle/                  Generated SQL migrations and snapshot
-scripts/migrate.mjs       Migration runner (also used in the Docker image)
-docker/init-test-db.sql   Creates the shortlink_test database
-tests/                    unit, integration, e2e
+```text
+.
+├── src/
+│   ├── app/                      # Routes and pages
+│   │   ├── page.tsx              # Home page with the create-link form
+│   │   ├── actions.ts            # Server Action that creates a link
+│   │   ├── [code]/
+│   │   │   └── route.ts          # Short-link redirect (GET, HEAD)
+│   │   ├── stats/
+│   │   │   └── [token]/
+│   │   │       ├── page.tsx      # Private stats page
+│   │   │       └── error.tsx     # Error boundary for the stats page
+│   │   ├── api/
+│   │   │   └── qr/
+│   │   │       └── [code]/
+│   │   │           └── route.ts  # QR code PNG
+│   │   ├── robots.ts             # robots.txt
+│   │   ├── not-found.tsx         # Site-wide 404 page
+│   │   ├── layout.tsx            # Root layout
+│   │   └── globals.css           # Global styles
+│   ├── components/               # React components, static status page renderer
+│   ├── content/
+│   │   └── copy.ts               # Every user-facing string (English)
+│   ├── lib/                      # Pure helpers
+│   │   ├── url.ts                # URL validation
+│   │   ├── expiry.ts             # Expiry validation
+│   │   ├── codes.ts              # Short code generation and format
+│   │   ├── tokens.ts             # Stats tokens and their hash
+│   │   ├── visitor.ts            # Client IP and HMAC hashing
+│   │   ├── user-agent.ts         # User-agent parsing, bot and prefetch filters
+│   │   ├── days.ts               # UTC day math
+│   │   └── types.ts              # Shared types
+│   └── server/                   # Server-only code
+│       ├── db/
+│       │   ├── schema.ts         # Drizzle schema
+│       │   └── client.ts         # Lazy postgres.js pool
+│       ├── env.ts                # Environment validation
+│       ├── links.ts              # Create and look up links
+│       ├── clicks.ts             # Record a click
+│       ├── stats.ts              # Aggregate stats
+│       └── rate-limit.ts         # Creation rate limit
+├── drizzle/                      # Generated SQL migrations and snapshot
+├── scripts/
+│   └── migrate.mjs               # Migration runner (also used in the Docker image)
+├── docker/
+│   └── init-test-db.sql          # Creates the shortlink_test database
+└── tests/
+    ├── unit/
+    ├── integration/
+    └── e2e/
 ```
 
 The backend returns error codes only. The UI maps them to sentences through `src/content/copy.ts`.
