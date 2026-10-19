@@ -4,7 +4,6 @@ import type { CreateLinkError, StatsView } from "@/lib/types";
 // the frontend maps them through this file.
 // Date arguments arrive already formatted by the caller.
 
-// Chosen by the boss on 2026-10-18 (DESIGN.md, section 14).
 export const APP_NAME = "Stub";
 
 export type StatusPageKind = "not-found" | "expired" | "disabled";
@@ -80,7 +79,7 @@ export const copy = {
       "Paste a long web address and get a 7-character short link, a QR code, and a secret page that counts its clicks. No account needed.",
   },
 
-  // Theme switch in the header of every page (DESIGN.md, section 15).
+  // Theme switch in the header of every page.
   // The label is both the visible text and the accessible name; aria-checked carries the state.
   theme: {
     toggleLabel: "Dark mode",

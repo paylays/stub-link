@@ -103,23 +103,57 @@ Then migrate it as described in [Getting started](getting-started.md#migrating-t
 
 **The Docker app exits right after start.** The container runs `scripts/migrate.mjs` first. Read the log with `docker compose --profile app logs app`; a failed migration or missing variable in `.env` is the usual cause.
 
-## Production deployment (Vercel + Neon)
+## Deploy your own copy on Vercel + Neon
 
-Stub runs at https://stub-link.vercel.app. The app is hosted on Vercel and the database is Neon Postgres, both in Singapore (`sin1`).
+This guide shows one way to host Stub: the app on Vercel, the database on Neon Postgres. The public demo at https://stub-link.vercel.app runs this way. Any host that runs Node.js 24 and a PostgreSQL database works too; see [Self-hosting notes](#self-hosting-notes).
 
 ```text
-GitHub (main) -> Vercel build -> Vercel functions (sin1) -> Neon Postgres (sin1)
+GitHub (production branch) -> Vercel build -> Vercel functions -> Neon Postgres
 ```
 
-- Source: the GitHub repository `paylays/stub-link`. The Vercel project is also named `stub-link` and lives in the `paylays-projects` team, on the Hobby plan. GitHub still redirects the old repository name `shortlink-app`.
-- Region: the function region is `sin1`. It is a project setting in Vercel, not a file in the repository. Node.js is 24.x.
-- Database: Neon Postgres, Free plan, region `sin1`, added through the Vercel Marketplace (Storage tab).
+### What to create
 
-### What runs on each deploy
+1. Fork or push the repository to your own GitHub account.
+2. Import it as a new project in Vercel. The framework preset is Next.js. Use Node.js 24.x in the project settings.
+3. Add a Neon Postgres database to the project through the Vercel Marketplace (Storage tab). The integration creates the database and injects its connection strings as environment variables.
+4. Pick a function region close to your database. For example, if the Neon database is in Singapore, set the Vercel function region to `sin1`. The region is a project setting in Vercel, not a file in the repository. Keep the app and the database in the same region, because every request makes a round trip to the database.
+5. Set `APP_URL` and `HASH_SECRET` as described in [Environment variables](#environment-variables).
+6. Set the Build Command as described in [Build Command](#build-command). The first deployment, created when you import the repository, uses the default `next build` and runs no migration. Until the migrating Build Command is in place, the site has no tables and creating a link fails with `server_error`.
+7. Redeploy production and check that the build log shows `Migrations applied`.
 
-Every push or merge to `main` builds and deploys to production. Every pull request branch gets a preview deployment.
+### Environment variables
 
-The Build Command is a project setting, not a file in the repository:
+| Name | Set by | Type | Targets |
+|---|---|---|---|
+| `DATABASE_URL` | Neon integration | Sensitive, pooled connection string | Preview, Production |
+| `DATABASE_URL_UNPOOLED` | Neon integration | Sensitive, direct connection string | Preview, Production |
+| `APP_URL` | You, for example `https://<your-project>.vercel.app` | Plain | Preview, Production |
+| `HASH_SECRET` | You, 32 random bytes | Sensitive | Preview, Production |
+
+Generate `HASH_SECRET` as described in [Configuration](configuration.md#generate-hash_secret). Set `APP_URL` to the public origin people will use, including the custom domain if you add one. The integration also injects other `PG*` and `POSTGRES_*` variables, which the app ignores. The migration script prefers `DATABASE_URL_UNPOOLED`, so migrations use the direct connection.
+
+Sensitive values cannot be read back from Vercel, only overwritten. Do not rotate `HASH_SECRET` casually: it keys the IP and visitor hashes, so a new value splits the history of unique visitors and of creator rate limits from that point on.
+
+To change a variable, edit it in the Vercel dashboard (Project > Settings > Environment Variables) or use the Vercel CLI:
+
+```bash
+vercel env ls
+printf '%s' "<value>" | vercel env add NAME production --force --yes
+printf '%s' "<value>" | vercel env add NAME preview --force --yes
+```
+
+Run the command once per target. `--force` overwrites an existing value, and `--sensitive` marks a secret. Piping the value keeps it out of the terminal output. There are two ways to tell the CLI which project to use. Run `vercel link` once in the repository folder (it creates a gitignored `.vercel/` folder), or skip linking and name the project and team on every command:
+
+```bash
+vercel env ls --project <your-project> --scope <your-team>
+printf '%s' "<value>" | vercel env add NAME production --project <your-project> --scope <your-team> --force --yes
+```
+
+A changed variable only applies to new deployments, so redeploy after changing one.
+
+### Build Command
+
+Set the Build Command in the Vercel project settings (Settings > Build and Deployment):
 
 ```bash
 if [ "$VERCEL_ENV" = "production" ]; then npm run db:migrate; fi && npm run build
@@ -129,40 +163,11 @@ if [ "$VERCEL_ENV" = "production" ]; then npm run db:migrate; fi && npm run buil
 - Preview builds skip migrations, because previews share the production database (see [Previews share the production database](#previews-share-the-production-database)).
 - A failed migration fails the build, so the previous deployment stays live.
 
-### Environment variables
-
-| Name | Set by | Type | Targets |
-|---|---|---|---|
-| `DATABASE_URL` | Neon integration | Sensitive, pooled connection string | Preview, Production |
-| `DATABASE_URL_UNPOOLED` | Neon integration | Sensitive, direct connection string | Preview, Production |
-| `APP_URL` | Manual, value `https://stub-link.vercel.app` | Config (plain) | Preview, Production |
-| `HASH_SECRET` | Manual, 32 random bytes | Sensitive | Preview, Production |
-
-The integration also injects other `PG*` and `POSTGRES_*` variables. The app ignores them. For what each variable means, see [Configuration](configuration.md). The migration script prefers `DATABASE_URL_UNPOOLED`, so migrations use the direct connection.
-
-Sensitive values cannot be read back from Vercel, only overwritten. Do not rotate `HASH_SECRET` casually: it keys the IP and visitor hashes, so a new value splits the history of unique visitors and of creator rate limits from that point on.
-
-### Change an environment variable
-
-Edit it in the Vercel dashboard (Project > Settings > Environment Variables), or with the Vercel CLI. These commands pass the project and team explicitly, so no `vercel link` is needed:
-
-```bash
-vercel env ls --project stub-link --scope paylays-projects
-printf '%s' "<value>" | vercel env add NAME production --project stub-link --scope paylays-projects --force --yes
-printf '%s' "<value>" | vercel env add NAME preview --project stub-link --scope paylays-projects --force --yes
-```
-
-Run the command once per target. Every variable in the table above targets both Production and Preview. `--force` overwrites an existing value. Add `--sensitive` for secrets. Piping the value keeps it out of the terminal output. `vercel link` creates a `.vercel/` folder, which is gitignored.
-
-A changed variable only applies to new deployments. Redeploy after changing one.
+With this setup, every push or merge to your production branch deploys to production, and every pull request branch gets a preview deployment.
 
 ### Roll back
 
 In the Vercel dashboard, open Deployments and use Instant Rollback on an earlier deployment. Rollback restores code only, not the database. Write each migration so the previous code still works with the new schema.
-
-### Deployment Protection
-
-The project uses Vercel Authentication with "all except custom domains". The production domain `stub-link.vercel.app` is public. Per-deployment URLs (`stub-link-<hash>-paylays-projects.vercel.app`) and preview deployments redirect to a Vercel login (`302`).
 
 ### Client IP headers
 
@@ -170,13 +175,15 @@ Vercel overwrites `x-forwarded-for` with the client IP and does not pass on valu
 
 ### Previews share the production database
 
-Preview deployments receive the same `DATABASE_URL`, so they read and write production data. Links created on a preview exist in production. This is why preview builds do not migrate: a migration from an unmerged branch would change the production schema.
+Preview deployments receive the same `DATABASE_URL`, so they read and write production data. Links created on a preview exist in production. This is why preview builds do not migrate: a migration from an unmerged branch would change the production schema. If you want isolated previews, give the Preview target its own database and its own variables.
 
-### Limits
+### Free-tier limits
 
-- Neon Free: 1 GB of storage per project and 100 CU-hours per month. Compute scales to zero after 5 minutes without traffic, so the first request after an idle period is slower.
-- Vercel Hobby is for personal, non-commercial use.
-- The database client uses at most 5 connections per instance and sets `prepare: false`, which suits the pooled connection.
+Check your plans' current limits before you rely on them. At the time of writing:
+
+- Neon's free plan caps storage per project and compute hours per month, and scales compute to zero after a few minutes without traffic, so the first request after an idle period is slower.
+- Vercel's free plan is meant for personal, non-commercial use.
+- The database client uses at most 5 connections per instance and sets `prepare: false`, which suits a pooled connection.
 
 ### Back up the production database
 
@@ -199,7 +206,7 @@ The Docker setup in [Getting started](getting-started.md) is meant for local use
 - When self-hosting without a trusted reverse proxy, the IP headers can be spoofed, which defeats the rate limit. This does not apply on Vercel, which sets them itself (see [Client IP headers](#client-ip-headers)).
 - Unique visitors are counted per link per UTC day. The sum over 30 days is not a count of distinct people.
 - Bot and prefetch filtering is a heuristic. Some automated traffic is counted, and some real traffic may not be.
-- Click rows are never pruned, so the `clicks` table only grows. Link rows are not pruned either, and `links.creator_ip_hash` is a stable per-IP value that is never cleared. On the Neon Free plan the 1 GB storage limit is the ceiling.
+- Click rows are never pruned, so the `clicks` table only grows. Link rows are not pruned either, and `links.creator_ip_hash` is a stable per-IP value that is never cleared. On a free database plan, the storage limit is the ceiling.
 - Links are not checked against a reputation or malware list.
-- The production host `stub-link.vercel.app` is 20 characters long. The code never splits the host, so on very narrow screens it can overflow inside the host display. Re-check the layout if the domain changes.
+- A very long host name can overflow its display on narrow screens, because the code never splits the host. Check the layout if you use a long domain.
 - `npm run start` prints a warning that `output: 'standalone'` is set. It is harmless for local runs.
