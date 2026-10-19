@@ -100,6 +100,10 @@ To run the whole app in Docker instead:
 docker compose --profile app up --build
 ```
 
+## Deploy your own
+
+Stub runs on any host with Node.js 24 and PostgreSQL. [Deploy your own copy on Vercel + Neon](docs/operations.md#deploy-your-own-copy-on-vercel--neon) walks through the Vercel setup, the environment variables, and the build command that runs migrations. For other hosts, read the [self-hosting notes](docs/operations.md#self-hosting-notes), especially the part about the client IP headers.
+
 ## Built with
 
 Next.js 16 (App Router), React 19, TypeScript, PostgreSQL with Drizzle ORM, and CSS Modules with system fonts. Tests use Vitest and Playwright.
@@ -113,10 +117,16 @@ Next.js 16 (App Router), React 19, TypeScript, PostgreSQL with Drizzle ORM, and 
 | [Architecture](docs/architecture.md) | Structure, data model, analytics, privacy |
 | [Routes and API](docs/api.md) | Every route, status codes, error codes |
 | [Testing](docs/testing.md) | Unit, integration, and end-to-end tests |
-| [Operations](docs/operations.md) | Backups, link takedown, troubleshooting, known limitations |
+| [Operations](docs/operations.md) | Backups, link takedown, troubleshooting, deploying on Vercel + Neon, known limitations |
 | [npm scripts](docs/scripts.md) | What each script does |
 
 The full index is in [docs/README.md](docs/README.md).
+
+## Contributing
+
+Before you open a pull request, run the checks listed in [Testing](docs/testing.md#before-sending-a-change): `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test`, and `npm run test:e2e`.
+
+Run `test` and `test:e2e` one after the other, never together: both empty the same test database. The same guide covers the database setup and what each layer checks.
 
 ## License
 

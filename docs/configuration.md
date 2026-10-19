@@ -12,7 +12,7 @@ Configuration comes from environment variables. For local work, put them in `.en
 | `DATABASE_URL_UNPOOLED` | no | unset | Direct (non-pooled) connection string. Only `scripts/migrate.mjs` reads it, and prefers it over `DATABASE_URL` when set. Use it on hosts that put a connection pooler in front of the database. Compose overrides only `DATABASE_URL` for the `app` profile, so do not set this variable in the `.env` that the `app` container reads; the migrator would use it instead of the container database. |
 | `TEST_DATABASE_URL` | for tests | none | Connection string of the test database. Its database name must end with `_test`; integration and end-to-end tests refuse anything else. Not needed at runtime. |
 
-In production, Vercel holds these values and `APP_URL` is `https://stub-link.vercel.app`. The Neon integration provides `DATABASE_URL` and `DATABASE_URL_UNPOOLED`. See [Production deployment](operations.md#production-deployment-vercel--neon) for who sets what and how to change it.
+On Vercel, the project settings hold these values and the Neon integration provides `DATABASE_URL` and `DATABASE_URL_UNPOOLED`. See [Deploy your own copy on Vercel + Neon](operations.md#deploy-your-own-copy-on-vercel--neon) for who sets what.
 
 A missing variable raises `Missing required env var <NAME>`. A short `HASH_SECRET` raises `HASH_SECRET must be at least 32 characters`. A bad `APP_URL` raises `APP_URL must be an absolute http(s) URL`.
 

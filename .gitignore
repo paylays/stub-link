@@ -13,3 +13,10 @@ npm-debug.log*
 test-results/
 playwright-report/
 .vercel
+
+# Local working notes
+/CLAUDE.md
+/.claude/
+/DESIGN.md
+/docs/plan.md
+/anti-slop/
