@@ -69,7 +69,7 @@ On failure it returns an error code from the tables above. The UI turns codes in
 
 ### Rate limit
 
-20 new links per creator per rolling hour. The creator is identified by a keyed hash of the client IP (see [Architecture](architecture.md#hashing-and-secret-tokens)); the limit is a count of `links` rows with that hash created in the last hour. Only successful creations count. Clients that share an IP share the budget. The IP comes from `x-real-ip`, then the first `x-forwarded-for` entry. Next.js never sets `x-real-ip` itself, so a client can send its own value unless a reverse proxy overwrites it. Next.js fills `x-forwarded-for` from the socket address, so the `unknown` fallback is practically unreachable. The check counts and then inserts without a lock, so parallel requests can exceed 20.
+20 new links per creator per rolling hour. The creator is identified by a keyed hash of the client IP (see [Architecture](architecture.md#hashing-and-secret-tokens)); the limit is a count of `links` rows with that hash created in the last hour. Only successful creations count. Clients that share an IP share the budget. The IP comes from `x-real-ip`, then the first `x-forwarded-for` entry. Next.js never sets `x-real-ip` itself, so when self-hosting a client can send its own value unless a reverse proxy overwrites it. On Vercel the platform sets both headers to the client IP (see [Operations](operations.md#client-ip-headers)). Next.js fills `x-forwarded-for` from the socket address, so the `unknown` fallback is practically unreachable. The check counts and then inserts without a lock, so parallel requests can exceed 20.
 
 ## Redirect: `GET` and `HEAD` `/<code>`
 

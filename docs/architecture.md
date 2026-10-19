@@ -133,7 +133,7 @@ Both IP-derived hashes use `HASH_SECRET` as an HMAC-SHA-256 key and keep the fir
 
 Because the visitor hash includes the day, "unique visitors" is a per-day figure. Adding the daily numbers over 30 days does not give the number of distinct people.
 
-Client IP comes from the `x-real-ip` header, then the first entry of `x-forwarded-for`, then the string `unknown`. These headers are only trustworthy behind a reverse proxy that overwrites them; see [Operations](operations.md#known-limitations).
+Client IP comes from the `x-real-ip` header, then the first entry of `x-forwarded-for`, then the string `unknown`. These headers are only trustworthy behind a proxy that overwrites them. Vercel does, so the production site is covered; see [Operations](operations.md#client-ip-headers). Self-hosting without such a proxy: see [Known limitations](operations.md#known-limitations).
 
 Stats tokens: 32 bytes from `crypto.randomBytes`, base64url encoded (43 characters). Only the plain SHA-256 hex digest is stored in `links.stats_token_hash`. The token has 256 bits of entropy, so a fast hash without a key is enough. Anyone holding the stats URL can read the stats; there is no other access control and no recovery if it is lost.
 

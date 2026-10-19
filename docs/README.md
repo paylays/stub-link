@@ -9,7 +9,7 @@ Technical documentation for Stub, a public URL shortener with per-link analytics
 | [Architecture](architecture.md) | Folder structure, request flows, data model, analytics, hashing, privacy properties |
 | [Routes and API](api.md) | Every page and API route, validation rules, status codes, rate limit, error codes |
 | [Testing](testing.md) | Test layers, commands, database requirements, why tests must not run in parallel |
-| [Operations](operations.md) | Migrations, backup and restore, link takedown, troubleshooting, deploy notes, known limitations |
+| [Operations](operations.md) | Migrations, backup and restore, link takedown, troubleshooting, production deployment (Vercel + Neon), self-hosting notes, known limitations |
 | [npm scripts](scripts.md) | Every script in `package.json` |
 
 All user-facing strings live in `src/content/copy.ts`. The project is released under the [MIT License](../LICENSE).
