@@ -4,6 +4,8 @@
 
 **Shorten a link. Count its clicks. No account.**
 
+Try it at https://stub-link.vercel.app
+
 [![License: MIT](https://img.shields.io/badge/license-MIT-56662A.svg)](LICENSE)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-29251F)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-17-6A6157)
@@ -21,7 +23,7 @@
 
 <br>
 
-Stub turns a long web address into a 7-character short link. You also get a QR code and a private stats page that shows how often the link was used. Nobody signs up, and nobody logs in.
+Stub turns a long web address into a 7-character short link. You also get a QR code and a private stats page that shows how often the link was used. Nobody signs up, and nobody logs in. The live site runs on Vercel with a Neon Postgres database.
 
 ## What you get
 
