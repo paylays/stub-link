@@ -72,7 +72,22 @@ Built-in agents from the caveman plugin, for small jobs (they save context):
 3. `caca`: review the diff, docs included. Small diffs may use `caveman:cavecrew-reviewer` instead.
 4. New or changed UI: `ucok` runs the final check (antislop Delivery Gate).
 5. Failing tests, a 🔴 finding, or a failed gate: send it back to the relevant dev (or `dodo` for docs) with the full findings. At most 3 rounds; after that, report to the boss as blocked.
-6. Report to the boss: what changed, proof (commands and results), remaining risks.
+6. Ship it through the Git workflow below.
+7. Report to the boss: what changed, proof (commands and results), PR link, remaining risks.
+
+### Git workflow (every change to the repo)
+Applies to every change: new feature, edit, removal, bug fix, docs, and config. The boss approved this flow once for all changes, so run it without asking again.
+
+Owner: the Tech Lead. Subagents never run git write commands; their briefs say "No git commands", so parallel work cannot collide on branches.
+
+1. Start from the latest `main`: `git fetch origin`, then `git switch -c <type>/<short-name> origin/main`. `<type>` matches the commit type: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`. Example: `fix/stats-timezone`.
+2. Implement through the team, then run the quality gate.
+3. Commit on the branch with the `caveman:caveman-commit` skill. Never commit directly to `main`.
+4. Push: `git push -u origin <branch>`.
+5. Open a PR to `main` with `gh pr create`. The body has a summary and the verification (commands and results).
+6. Merge only after the quality gate passes: `gh pr merge <number> --merge`. Blocked after 3 rounds: leave the PR open and report to the boss.
+7. Return to `main`: `git switch main`, then `git pull --ff-only origin main`.
+8. A merge to `main` deploys production on Vercel and runs migrations. Check that the new deployment reaches READY, and report the result. A failed deploy goes to the boss right away; the previous deployment stays live.
 
 ## Delegation rules
 - Subagents start with no conversation context. Every brief must contain:
@@ -93,7 +108,8 @@ Built-in agents from the caveman plugin, for small jobs (they save context):
 ## Requires boss approval
 - Stack choice for a new project.
 - Deleting data, tables, or files outside the task's scope.
-- Deploying, pushing, or any git operation that rewrites history.
+- Any git operation that rewrites history (force-push, rebasing or amending pushed commits, deleting branches with unmerged work).
+- Pushing, merging, or deploying outside the Git workflow, such as a direct push to `main` or a manual production deploy. The Git workflow itself is pre-approved.
 - Paid services, new API keys, or credentials.
 - A large new dependency that is not in the approved plan.
 
@@ -116,7 +132,7 @@ Secrets are never written into code or docs. Use environment variables and an `.
   - `qudus`: `caveman:verify-and-stop`
   - `caca`: `caveman:caveman-review`
   - `dodo`: none; `antislop-copywriting` sets the writing standard
-- Commit only when the boss asks. Write commit messages with the `caveman:caveman-commit` skill.
+- Commits follow the Git workflow. Write commit messages with the `caveman:caveman-commit` skill.
 
 ## Project notes
 - Product: "Stub", a public URL shortener (no login) with per-link analytics behind a secret stats URL shown once. Live at https://stub-link.vercel.app. Repo: `paylays/stub-link` (renamed from `shortlink-app`). Full approved plan: `docs/plan.md`. Design direction and tokens: `DESIGN.md`. All UI strings: `src/content/copy.ts` (English). Technical docs: `docs/README.md` (index); `README.md` is public-facing, so keep team and process details out of it. `docs/plan.md` and `DESIGN.md` were written before the agents got names, so they use role names (architect, ui-designer, backend-dev, ...); the Team table maps each role to its agent.
